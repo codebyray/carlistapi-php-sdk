@@ -13,12 +13,12 @@ final readonly class CarListApi
     private Client $client;
 
     public function __construct(
-        string|Configuration $tokenOrConfiguration,
+        string|Configuration $token,
         ?ClientInterface $httpClient = null,
     ) {
-        $configuration = is_string($tokenOrConfiguration)
-            ? new Configuration(token: $tokenOrConfiguration)
-            : $tokenOrConfiguration;
+        $configuration = is_string($token)
+            ? new Configuration(token: $token)
+            : $token;
 
         $this->client = new Client(
             http: $httpClient ?? new GuzzleClient(),

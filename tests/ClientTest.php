@@ -58,6 +58,13 @@ final class ClientTest extends TestCase
         $sdk->automotive()->years();
     }
 
+    public function test_it_accepts_a_named_token_argument(): void
+    {
+        $sdk = new CarListApi(token: 'named-arg-token');
+
+        self::assertSame('named-arg-token', $sdk->client()->configuration()->token);
+    }
+
     public function test_with_token_returns_a_new_sdk_instance(): void
     {
         $sdk = new CarListApi('first-token');

@@ -23,7 +23,6 @@ We will acknowledge receipt of your report as quickly as possible and work with 
 
 | Version | Supported |
 |----------|-----------|
-| 1.x | ✅ |
-| < 1.0 | ❌ |
+| 0.1.x | ✅ |
 
-Security fixes are provided for the latest supported major version.
+This SDK is currently pre-1.0. Security fixes are provided for the latest released version. Once a 1.0 release is tagged, this table will be updated to track supported major versions.

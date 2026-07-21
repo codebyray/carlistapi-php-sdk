@@ -256,7 +256,7 @@ Requests automatically include a User-Agent identifying the SDK.
 Example:
 
 ```text
-codebyray/carlistapi-php-sdk/1.0.0
+codebyray/carlistapi-php-sdk/0.1.0
 ```
 
 You may override the User-Agent if desired.
