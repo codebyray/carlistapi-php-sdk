@@ -11,6 +11,8 @@ use CodebyRay\CarListApi\Exceptions\ServerException;
 use CodebyRay\CarListApi\Exceptions\TransportException;
 use CodebyRay\CarListApi\Exceptions\ValidationException;
 use CodebyRay\CarListApi\Response\ApiResponse;
+use GuzzleHttp\ClientInterface as GuzzleClientInterface;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\RequestOptions;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
@@ -54,7 +56,9 @@ final readonly class Client
 
         while (true) {
             try {
-                $response = $this->http->request($method, $this->url($path), $options);
+                $response = $this->http instanceof GuzzleClientInterface
+                    ? $this->http->request($method, $this->url($path), $options)
+                    : $this->http->sendRequest($this->psrRequest($method, $path, $options));
             } catch (ClientExceptionInterface $exception) {
                 if ($attempt < $this->configuration->retryTimes) {
                     $attempt++;
@@ -131,9 +135,26 @@ final readonly class Client
             .'/'.ltrim($path, '/');
     }
 
+    /** @param array<string, mixed> $options */
+    private function psrRequest(string $method, string $path, array $options): Request
+    {
+        $url = $this->url($path);
+        $query = http_build_query($options[RequestOptions::QUERY] ?? [], '', '&', PHP_QUERY_RFC3986);
+
+        if ($query !== '') {
+            $url .= (str_contains($url, '?') ? '&' : '?').$query;
+        }
+
+        $body = isset($options[RequestOptions::JSON])
+            ? json_encode($options[RequestOptions::JSON], JSON_THROW_ON_ERROR)
+            : null;
+
+        return new Request($method, $url, $options[RequestOptions::HEADERS], $body);
+    }
+
     private function shouldRetry(ResponseInterface $response): bool
     {
-        return $response->getStatusCode() === 429 || $response->getStatusCode() >= 500;
+        return $response->getStatusCode() >= 500;
     }
 
     private function sleep(): void

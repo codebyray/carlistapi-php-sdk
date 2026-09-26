@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- Support PSR-18 clients that do not provide Guzzle's `request()` method.
+- Stop retrying HTTP 429 quota responses.
+- Correct the year-filtered makes example in the README.
+
 ## [0.1.0] - 2026-07-20
 
 ### Added
