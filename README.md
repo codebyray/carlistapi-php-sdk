@@ -53,7 +53,7 @@ By default the SDK uses:
 | API Version | `v1` |
 | Timeout | 15 seconds |
 | Connect Timeout | 5 seconds |
-| Retries | 2 |
+| Retries | 2 additional attempts for connection failures and HTTP 5xx |
 
 To customize these values:
 
@@ -72,6 +72,10 @@ $config = new Configuration(
 
 $carList = new CarListApi($config);
 ```
+
+You can pass a PSR-18 HTTP client as the second constructor argument. When using a
+non-Guzzle client, configure its timeouts and TLS verification on that client;
+the SDK's transport options are applied to Guzzle clients.
 
 ---
 
@@ -93,7 +97,7 @@ Retrieve all makes.
 ```php
 $makes = $carList
     ->automotive()
-    ->makes(2026)
+    ->makesByYear(2026)
     ->data;
 ```
 
@@ -256,7 +260,7 @@ Requests automatically include a User-Agent identifying the SDK.
 Example:
 
 ```text
-codebyray/carlistapi-php-sdk/0.1.0
+codebyray/carlistapi-php-sdk/<installed-version>
 ```
 
 You may override the User-Agent if desired.
