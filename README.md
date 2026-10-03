@@ -19,7 +19,7 @@ The SDK works with any PHP application, including:
 
 - PHP 8.2 or higher
 - Composer
-- A valid Car List API API token
+- A valid Car List API token
 
 ---
 
@@ -76,6 +76,9 @@ $carList = new CarListApi($config);
 VIN decode POST requests are sent once, even when a connection fails or the API
 returns HTTP 5xx. A successful decode may count against your quota if its
 response is lost, so the SDK does not retry it automatically.
+
+If upgrading from v0.1.x, handle a failed VIN decode in your application only
+when another quota-counted attempt is acceptable.
 
 You can pass a PSR-18 HTTP client as the second constructor argument. When using a
 non-Guzzle client, configure its timeouts and TLS verification on that client;
