@@ -6,11 +6,15 @@ use CodebyRay\CarListApi\CarListApi;
 use CodebyRay\CarListApi\Configuration;
 use CodebyRay\CarListApi\Exceptions\AuthenticationException;
 use CodebyRay\CarListApi\Exceptions\RateLimitException;
+use CodebyRay\CarListApi\Exceptions\ServerException;
+use CodebyRay\CarListApi\Exceptions\TransportException;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Request;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface as PsrClientInterface;
 use Psr\Http\Message\RequestInterface;
@@ -131,5 +135,49 @@ final class ClientTest extends TestCase
 
         self::assertSame([], $sdk->automotive()->years()->data);
         self::assertCount(2, $history);
+    }
+
+    public function test_it_retries_get_after_a_connection_failure(): void
+    {
+        $history = [];
+        $failure = new ConnectException('Connection lost.', new Request('GET', 'https://example.test/api/v1/car-data/get-years/asc'));
+        $stack = HandlerStack::create(new MockHandler([$failure, new Response(200, [], '[]')]));
+        $stack->push(Middleware::history($history));
+        $sdk = new CarListApi(new Configuration(token: 'token', retryTimes: 1, retrySleepMs: 0), new Client(['handler' => $stack]));
+
+        self::assertSame([], $sdk->automotive()->years()->data);
+        self::assertCount(2, $history);
+    }
+
+    public function test_it_does_not_retry_vin_decode_after_a_server_error(): void
+    {
+        $history = [];
+        $stack = HandlerStack::create(new MockHandler([new Response(503)]));
+        $stack->push(Middleware::history($history));
+        $sdk = new CarListApi(new Configuration(token: 'token', retryTimes: 2, retrySleepMs: 0), new Client(['handler' => $stack]));
+
+        try {
+            $sdk->vinDecoder()->decode('1HGCM82633A004352');
+            self::fail('Expected a server exception.');
+        } catch (ServerException $e) {
+            self::assertSame(503, $e->getCode());
+            self::assertCount(1, $history);
+        }
+    }
+
+    public function test_it_does_not_retry_vin_decode_after_a_connection_failure(): void
+    {
+        $history = [];
+        $failure = new ConnectException('Connection lost.', new Request('POST', 'https://example.test/api/v1/vin-decoder/decode'));
+        $stack = HandlerStack::create(new MockHandler([$failure]));
+        $stack->push(Middleware::history($history));
+        $sdk = new CarListApi(new Configuration(token: 'token', retryTimes: 2, retrySleepMs: 0), new Client(['handler' => $stack]));
+
+        try {
+            $sdk->vinDecoder()->decode('1HGCM82633A004352');
+            self::fail('Expected a transport exception.');
+        } catch (TransportException $e) {
+            self::assertCount(1, $history);
+        }
     }
 }

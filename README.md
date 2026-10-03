@@ -53,7 +53,7 @@ By default the SDK uses:
 | API Version | `v1` |
 | Timeout | 15 seconds |
 | Connect Timeout | 5 seconds |
-| Retries | 2 additional attempts for connection failures and HTTP 5xx |
+| Retries | 2 additional attempts for GET connection failures and HTTP 5xx |
 
 To customize these values:
 
@@ -72,6 +72,10 @@ $config = new Configuration(
 
 $carList = new CarListApi($config);
 ```
+
+VIN decode POST requests are sent once, even when a connection fails or the API
+returns HTTP 5xx. A successful decode may count against your quota if its
+response is lost, so the SDK does not retry it automatically.
 
 You can pass a PSR-18 HTTP client as the second constructor argument. When using a
 non-Guzzle client, configure its timeouts and TLS verification on that client;
