@@ -60,7 +60,7 @@ final readonly class Client
                     ? $this->http->request($method, $this->url($path), $options)
                     : $this->http->sendRequest($this->psrRequest($method, $path, $options));
             } catch (ClientExceptionInterface $exception) {
-                if ($attempt < $this->configuration->retryTimes) {
+                if ($method === 'GET' && $attempt < $this->configuration->retryTimes) {
                     $attempt++;
                     $this->sleep();
                     continue;
@@ -71,7 +71,7 @@ final readonly class Client
                 throw new TransportException('The Car List API request failed before a response was received.', 0, $exception);
             }
 
-            if ($this->shouldRetry($response) && $attempt < $this->configuration->retryTimes) {
+            if ($method === 'GET' && $this->shouldRetry($response) && $attempt < $this->configuration->retryTimes) {
                 $attempt++;
                 $this->sleep();
                 continue;
